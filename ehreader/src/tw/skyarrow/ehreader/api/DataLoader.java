@@ -104,6 +104,7 @@ public class DataLoader {
         cookieStore.addCookie(new Cookie(IPB_PASS_HASH, passhash, isLoggedIn));
         cookieStore.addCookie(new Cookie(IPB_SESSION_ID, sessionid, isLoggedIn));
         httpContext.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
+
     }
 
     private class Cookie extends BasicClientCookie {
