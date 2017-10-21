@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    // Menu
+    <string name="menu_add_bookmark">新增书签</string>
+    <string name="menu_remove_bookmark">移除书签</string>
+    <string name="menu_bookmark_list">书签清单</string>
+    <string name="menu_find_similar">搜索相似照片</string>
+    <string name="menu_set_as_wallpaper">设为桌面</string>
+    <string name="menu_rotate_left">向左旋转</string>
+    <string name="menu_rotate_right">向右旋转</string>
+    <string name="menu_slideshow">投影片</string>
+    <string name="menu_save_photo">储存图片</string>
+    <string name="menu_delete_photo">删除图片</string>
+
+    // Notification
+    <string name="notification_bookmark_added">书签已增加</string>
+    <string name="notification_bookmark_removed">书签已移除</string>
+
+    // Bookmark list
+    <string name="bookmark_list">书签清单</string>
+    <string name="bookmark_list_item">第 %d 页</string>
+    <string name="no_bookmarks">没有书签。</string>
+
+    // Dialog: Save photo
+    <string name="photo_saving">保存中&#8230;</string>
+    <string name="photo_save_success">图片已保存于 %s</string>
+    <string name="photo_save_failed">图片保存失败</string>
+
+    // Dialog: Delete photo
+    <string name="photo_delete_title">删除图片</string>
+    <string name="photo_delete_msg">您确定要删除此图片吗？此操作无法撤销。</string>
+    <string name="photo_deleting">删除中&#8230;</string>
+    <string name="photo_delete_success">图片已删除</string>
+    <string name="photo_delete_failed">图片删除失败</string>
+
+    // Dialog: Error
+    <string name="photo_error_title">糟糕！</string>
+    <string name="photo_error_not_found">抱歉，找不到图片。此图集可能已被删除。</string>
+    <string name="photo_error_network">网络错误，请检查网络。</string>
+    <string name="photo_error_pinned">此图集已被标记，请登陆查看。</string>
+    <string name="photo_error_unknown">发生了一些错误，请重试。</string>
+    <string name="network_config">网络设置</string>
+</resources>

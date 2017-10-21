@@ -12,7 +12,7 @@ import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.assist.DiscCacheUtil;
+import com.nostra13.universalimageloader.utils.DiskCacheUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -29,18 +29,16 @@ import tw.skyarrow.ehreader.util.FileInfoHelper;
  */
 public class PhotoProvider extends ContentProvider {
     public static final String AUTHORITY = "tw.skyarrow.ehreader.provider.PhotoProvider";
-
-    private static UriMatcher uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
-    private static final int PHOTO_ID = 1;
-
     public static final Uri PHOTO_URI = Uri.parse("content://" + AUTHORITY + "/photos");
-
-    private PhotoDao photoDao;
-    private ImageLoader imageLoader;
+    private static final int PHOTO_ID = 1;
+    private static UriMatcher uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 
     static {
         uriMatcher.addURI(AUTHORITY, "photos/#", PHOTO_ID);
     }
+
+    private PhotoDao photoDao;
+    private ImageLoader imageLoader;
 
     @Override
     public boolean onCreate() {
@@ -142,7 +140,7 @@ public class PhotoProvider extends ContentProvider {
         File file = photo.getFile();
 
         if (!file.exists()) {
-            file = DiscCacheUtil.findInCache(photo.getSrc(), imageLoader.getDiscCache());
+            file = DiskCacheUtils.findInCache(photo.getSrc(), imageLoader.getDiscCache());
         }
 
         if (file.exists()) {

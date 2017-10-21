@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    // Menu
+    <string name="menu_star">收藏</string>
+    <string name="menu_unstar">取消收藏</string>
+    <string name="menu_open_in_browser">在浏览器中浏览</string>
+
+    // Meta
+    <string name="meta_tags">标签</string>
+    <string name="meta_uploader">上传者</string>
+    <string name="meta_created">创建时间</string>
+
+    <string name="read_btn">阅读</string>
+    <string name="download_btn">下载</string>
+
+    // Notification
+    <string name="notification_starred">收藏成功</string>
+    <string name="notification_unstarred">取消收藏</string>
+
+    // Error
+    <string name="error_token_invalid">Token 无效</string>
+    <string name="error_no_data">无数据</string>
+    <string name="error_fetch_gallery">图片获取失败</string>
+
+    // Dialog: Choose page
+    <string name="choose_page_title">前往</string>
+    <string name="choose_page_prefix">第</string>
+    <string name="choose_page_suffix">页</string>
+</resources>

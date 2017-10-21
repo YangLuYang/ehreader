@@ -26,7 +26,9 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -40,6 +42,7 @@ import tw.skyarrow.ehreader.db.GalleryDao;
 import tw.skyarrow.ehreader.db.Photo;
 import tw.skyarrow.ehreader.db.PhotoDao;
 import tw.skyarrow.ehreader.util.DatabaseHelper;
+import tw.skyarrow.ehreader.util.ExHentaiHepler;
 import tw.skyarrow.ehreader.util.HttpRequestHelper;
 import tw.skyarrow.ehreader.util.L;
 import tw.skyarrow.ehreader.util.LoginHelper;
@@ -48,26 +51,27 @@ import tw.skyarrow.ehreader.util.LoginHelper;
  * Created by SkyArrow on 2014/2/19.
  */
 public class DataLoader {
+    public static final Pattern pGalleryUrl = Pattern.compile("https://(e-|ex)hentai\\.org/g/(\\d+)/(\\w+)");
+    public static final Pattern pPhotoUrl = Pattern.compile("https://(e-|ex)hentai\\.org/s/(\\w+?)/(\\d+)-(\\d+)");
+    public static final Pattern pShowkey = Pattern.compile("var showkey.*=.*\"([\\w-]+?)\";");
+    public static final Pattern pImageSrc = Pattern.compile("<img id=\"img\" src=\"(.+)/(.+?)\"");
+    //修改正则
+    public static final Pattern pGalleryURL = Pattern.compile("<a href=\"https://(e-|ex)hentai\\.org/g/(\\d+)/(\\w+)/\"");
+    private static final String IPB_MEMBER_ID = "ipb_member_id";
+    private static final String IPB_PASS_HASH = "ipb_pass_hash";
+    private static final String IPB_SESSION_ID = "ipb_session_id";
     private static DataLoader instance;
     private Context context;
     private GalleryDao galleryDao;
     private PhotoDao photoDao;
     private HttpContext httpContext;
     private LoginHelper loginHelper;
-
-    private static final String IPB_MEMBER_ID = "ipb_member_id";
-    private static final String IPB_PASS_HASH = "ipb_pass_hash";
-    private static final String IPB_SESSION_ID = "ipb_session_id";
-
-    public static final Pattern pGalleryUrl = Pattern.compile("http://(g\\.e-|ex)hentai\\.org/g/(\\d+)/(\\w+)");
-    public static final Pattern pPhotoUrl = Pattern.compile("http://(g\\.e-|ex)hentai\\.org/s/(\\w+?)/(\\d+)-(\\d+)");
-    public static final Pattern pShowkey = Pattern.compile("var showkey.*=.*\"([\\w-]+?)\";");
-    public static final Pattern pImageSrc = Pattern.compile("<img id=\"img\" src=\"(.+)/(.+?)\"");
-    public static final Pattern pGalleryURL = Pattern.compile("<a href=\"http://(g\\.e-|ex)hentai\\.org/g/(\\d+)/(\\w+)/\" onmouseover");
+    private ExHentaiHepler exHentaiHepler;
 
     private DataLoader(Context context) {
         this.context = context;
         loginHelper = LoginHelper.getInstance(context);
+        exHentaiHepler = ExHentaiHepler.getInstance(context);
 
         setupDatabase();
         setupHttpContext();
@@ -107,15 +111,6 @@ public class DataLoader {
 
     }
 
-    private class Cookie extends BasicClientCookie {
-        private Cookie(String name, String value, boolean loggedIn) {
-            super(name, value);
-
-            setPath("/");
-            setDomain(loggedIn ? "exhentai.org" : "e-hentai.org");
-        }
-    }
-
     public boolean isLoggedIn() {
         return loginHelper.isLoggedIn();
     }
@@ -134,12 +129,16 @@ public class DataLoader {
         String responseStr = "";
 
         try {
-            String url = isLoggedIn() ? Constant.API_URL_EX : Constant.API_URL;
+            //修改
+//            String url = isLoggedIn() ? Constant.API_URL_EX : Constant.API_URL;
+            String url = exHentaiHepler.isEx() ? Constant.API_URL_EX : Constant.API_URL;
             HttpPost httpPost = new HttpPost(url);
 
             httpPost.setHeader("Accept", "application/json");
             httpPost.setHeader("Content-Type", "application/json");
             httpPost.setEntity(new StringEntity(json.toString()));
+
+            L.d("Request Post Data: %s", json.toString());
 
             HttpResponse response = getHttpResponse(httpPost);
             responseStr = HttpRequestHelper.readResponse(response);
@@ -194,7 +193,7 @@ public class DataLoader {
 
     public List<Photo> getPhotoList(Gallery gallery, int page) throws ApiCallException {
         try {
-            String url = gallery.getUrl(page, isLoggedIn());
+            String url = gallery.getUrl(page, exHentaiHepler.isEx());
 
             L.d("Get photo list: %s", url);
 
@@ -210,7 +209,8 @@ public class DataLoader {
                 String token = matcher.group(2);
                 int photoPage = Integer.parseInt(matcher.group(4));
                 Photo photo = getPhotoInDb(galleryId, photoPage);
-
+                //https://e-hentai.org/s/57dbd08c4b/1131150-2
+                //https://e-hentai.org/s/token/galleryId-page
                 L.d("Photo found: {galleryId: %d, token: %s, page: %d}", galleryId, token, photoPage);
 
                 if (photo != null) {
@@ -348,7 +348,7 @@ public class DataLoader {
         }
 
         try {
-            String url = photo.getUrl(isLoggedIn());
+            String url = photo.getUrl(exHentaiHepler.isEx());
 
             L.d("Get show key: %s", url);
 
@@ -356,14 +356,14 @@ public class DataLoader {
             HttpResponse response = getHttpResponse(httpGet);
             String content = HttpRequestHelper.readResponse(response);
 
-            L.d("Get show key callback: %s", content);
+//            L.d("Get show key callback: %s", content);
 
             if (content.contains("This gallery is pining for the fjords")) {
                 throw new ApiCallException(ApiErrorCode.GALLERY_PINNED, url, response);
             } else if (content.equals("Invalid page.")) {
                 list = getPhotoList(galleryId, photo.getPage() / Constant.PHOTO_PER_PAGE);
                 photo = list.get(0);
-                httpGet = new HttpGet(photo.getUrl(isLoggedIn()));
+                httpGet = new HttpGet(photo.getUrl(exHentaiHepler.isEx()));
                 response = getHttpResponse(httpGet);
                 content = HttpRequestHelper.readResponse(response);
 
@@ -399,6 +399,14 @@ public class DataLoader {
         return getGalleryIndex(base, 0);
     }
 
+    public List<Gallery> getGalleryIndex(int page) throws ApiCallException {
+        return getGalleryIndex(getUrl(), page);
+    }
+
+    private String getUrl() {
+        return exHentaiHepler.isEx() ? Constant.BASE_URL_EX : Constant.BASE_URL;
+    }
+
     public List<Gallery> getGalleryIndex(String base, int page) throws ApiCallException {
         String url = getGalleryIndexUrl(base, page);
 
@@ -406,20 +414,43 @@ public class DataLoader {
 
         try {
             HttpGet httpGet = new HttpGet(url);
+            //Set Header Param
+            httpGet.setHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36");
+            httpGet.setHeader("Accept-Language", "zh-CN,zh;q=0.8");
+            httpGet.setHeader("Accept-Charset", "utf-8;q=0.7,*;q=0.7");
+            httpGet.setHeader("Connection", "keep-alive");
+            httpGet.setHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8");
+
+
             HttpResponse response = getHttpResponse(httpGet);
             String html = HttpRequestHelper.readResponse(response);
-            Matcher matcher = pGalleryURL.matcher(html);
-            JSONArray gidlist = new JSONArray();
 
-            while (matcher.find()) {
+            //能够获取网页内容
+//            L.d("Get response: %s",html);
+
+            Matcher matcher = pGalleryURL.matcher(html);
+//            JSONArray gidlist = new JSONArray();
+            //去重
+            Map<Long, String> map = new HashMap<Long, String>();
+            //限制gidlist大小
+            int i = 0;
+            while (matcher.find() && i++ <= 10) {
                 long id = Long.parseLong(matcher.group(2));
                 String token = matcher.group(3);
+//                JSONArray arr = new JSONArray();
+//
+//                arr.put(id);
+//                arr.put(token);
+                map.put(id, token);
+//                L.d("Gallery found: {id: %d, token: %s}", id, token);
+//                gidlist.put(arr);
+            }
+            JSONArray gidlist = new JSONArray();
+            for (Long key : map.keySet()) {
                 JSONArray arr = new JSONArray();
-
-                arr.put(id);
-                arr.put(token);
-
-                L.d("Gallery found: {id: %d, token: %s}", id, token);
+                arr.put(key);
+                arr.put(map.get(key));
+                L.d("Gallery found: {id: %d, token: %s}", key, map.get(key));
                 gidlist.put(arr);
             }
 
@@ -591,4 +622,15 @@ public class DataLoader {
 
         return getGallery(id, token);
     }
+
+    private class Cookie extends BasicClientCookie {
+        private Cookie(String name, String value, boolean loggedIn) {
+            super(name, value);
+
+            setPath("/");
+//            setDomain(loggedIn ? "exhentai.org" : "e-hentai.org");
+            setDomain(exHentaiHepler.isEx() ? "exhentai.org" : "e-hentai.org");
+        }
+    }
+
 }

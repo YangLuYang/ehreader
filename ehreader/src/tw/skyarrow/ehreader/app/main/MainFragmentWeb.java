@@ -27,12 +27,14 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import de.greenrobot.event.EventBus;
 import tw.skyarrow.ehreader.BaseApplication;
+import tw.skyarrow.ehreader.Constant;
 import tw.skyarrow.ehreader.R;
 import tw.skyarrow.ehreader.api.ApiCallException;
 import tw.skyarrow.ehreader.api.DataLoader;
 import tw.skyarrow.ehreader.app.gallery.GalleryActivity;
 import tw.skyarrow.ehreader.db.Gallery;
 import tw.skyarrow.ehreader.event.ListUpdateEvent;
+import tw.skyarrow.ehreader.util.ExHentaiHepler;
 import tw.skyarrow.ehreader.util.NetworkHelper;
 import tw.skyarrow.ehreader.widget.InfiniteScrollListener;
 
@@ -42,23 +44,17 @@ import tw.skyarrow.ehreader.widget.InfiniteScrollListener;
 public class MainFragmentWeb extends Fragment implements InfiniteScrollListener.OnScrollToEndListener,
         InfiniteScrollListener.OnScrollStateChangedListener, AdapterView.OnItemClickListener {
 
-    @InjectView(R.id.list)
-    ListView listView;
-
-    @InjectView(R.id.loading)
-    ProgressBar progressBar;
-
-    @InjectView(R.id.error)
-    TextView errorView;
-
-    @InjectView(R.id.retry)
-    Button retryBtn;
-
     public static final String TAG = "MainFragmentWeb";
-
     public static final String EXTRA_BASE = "base";
     public static final String EXTRA_POSITION = "position";
-
+    @InjectView(R.id.list)
+    ListView listView;
+    @InjectView(R.id.loading)
+    ProgressBar progressBar;
+    @InjectView(R.id.error)
+    TextView errorView;
+    @InjectView(R.id.retry)
+    Button retryBtn;
     private String baseUrl;
     private InfiniteScrollListener scrollListener;
     private List<Long> galleryIndex;
@@ -66,6 +62,7 @@ public class MainFragmentWeb extends Fragment implements InfiniteScrollListener.
     private GalleryListAdapter adapter;
     private DataLoader dataLoader;
     private NetworkHelper network;
+    private ExHentaiHepler exHentaiHepler;
     private EventBus bus;
 
     private View footer;
@@ -75,6 +72,16 @@ public class MainFragmentWeb extends Fragment implements InfiniteScrollListener.
     private boolean firstLoaded = true;
     private GalleryListTask task;
     private int currentPage = 0;
+    private View.OnClickListener onRetryBtnClick = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            errorView.setVisibility(View.GONE);
+            footerError.setVisibility(View.GONE);
+            retryBtn.setVisibility(View.GONE);
+            footerRetry.setVisibility(View.GONE);
+            getGalleryList(currentPage);
+        }
+    };
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -87,9 +94,13 @@ public class MainFragmentWeb extends Fragment implements InfiniteScrollListener.
         Context context = getActivity();
         dataLoader = DataLoader.getInstance(getActivity());
         network = NetworkHelper.getInstance(getActivity());
+        exHentaiHepler = ExHentaiHepler.getInstance(getActivity());
 
         Bundle args = getArguments();
         baseUrl = args.getString(EXTRA_BASE);
+        if (baseUrl == null || baseUrl.isEmpty()) {
+            baseUrl = exHentaiHepler.isEx() ? Constant.BASE_URL_EX : Constant.BASE_URL;
+        }
 
         scrollListener = new InfiniteScrollListener();
         scrollListener.setOnScrollToEndListener(this);
@@ -199,58 +210,6 @@ public class MainFragmentWeb extends Fragment implements InfiniteScrollListener.
         startActivity(intent);
     }
 
-    private class GalleryListTask extends AsyncTask<Integer, Integer, List<Gallery>> {
-        private long startLoadAt;
-
-        @Override
-        protected List<Gallery> doInBackground(Integer... integers) {
-            int page = integers[0];
-
-            try {
-                return dataLoader.getGalleryIndex(baseUrl, page);
-            } catch (ApiCallException e) {
-                e.printStackTrace();
-            }
-
-            return null;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            startLoadAt = System.currentTimeMillis();
-        }
-
-        @Override
-        protected void onPostExecute(List<Gallery> list) {
-            task = null;
-
-            if (list == null) {
-                scrollListener.setEnd(true);
-                showError(R.string.error_load_gallery_list);
-            } else if (list.size() == 0) {
-                scrollListener.setEnd(true);
-                showError(R.string.error_no_more_results);
-            } else {
-                for (Gallery gallery : list) {
-                    long id = gallery.getId();
-
-                    if (galleryIndex.contains(id)) continue;
-
-                    galleryList.add(gallery);
-                    galleryIndex.add(id);
-                }
-
-                adapter.notifyDataSetChanged();
-            }
-
-            stopLoading();
-
-            BaseApplication.getTracker().send(MapBuilder.createTiming(
-                    "resources", System.currentTimeMillis() - startLoadAt, "load index", null
-            ).build());
-        }
-    }
-
     private void showError(int res) {
         showError(res, false);
     }
@@ -327,14 +286,55 @@ public class MainFragmentWeb extends Fragment implements InfiniteScrollListener.
         getGalleryList(0);
     }
 
-    private View.OnClickListener onRetryBtnClick = new View.OnClickListener() {
+    private class GalleryListTask extends AsyncTask<Integer, Integer, List<Gallery>> {
+        private long startLoadAt;
+
         @Override
-        public void onClick(View view) {
-            errorView.setVisibility(View.GONE);
-            footerError.setVisibility(View.GONE);
-            retryBtn.setVisibility(View.GONE);
-            footerRetry.setVisibility(View.GONE);
-            getGalleryList(currentPage);
+        protected List<Gallery> doInBackground(Integer... integers) {
+            int page = integers[0];
+
+            try {
+                return dataLoader.getGalleryIndex(baseUrl, page);
+            } catch (ApiCallException e) {
+                e.printStackTrace();
+            }
+
+            return null;
         }
-    };
+
+        @Override
+        protected void onPreExecute() {
+            startLoadAt = System.currentTimeMillis();
+        }
+
+        @Override
+        protected void onPostExecute(List<Gallery> list) {
+            task = null;
+
+            if (list == null) {
+                scrollListener.setEnd(true);
+                showError(R.string.error_load_gallery_list);
+            } else if (list.size() == 0) {
+                scrollListener.setEnd(true);
+                showError(R.string.error_no_more_results);
+            } else {
+                for (Gallery gallery : list) {
+                    long id = gallery.getId();
+
+                    if (galleryIndex.contains(id)) continue;
+
+                    galleryList.add(gallery);
+                    galleryIndex.add(id);
+                }
+
+                adapter.notifyDataSetChanged();
+            }
+
+            stopLoading();
+
+            BaseApplication.getTracker().send(MapBuilder.createTiming(
+                    "resources", System.currentTimeMillis() - startLoadAt, "load index", null
+            ).build());
+        }
+    }
 }

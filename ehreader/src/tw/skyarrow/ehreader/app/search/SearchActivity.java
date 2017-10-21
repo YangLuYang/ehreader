@@ -3,9 +3,7 @@ package tw.skyarrow.ehreader.app.search;
 import android.app.ActionBar;
 import android.app.SearchManager;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.provider.SearchRecentSuggestions;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -20,6 +18,7 @@ import tw.skyarrow.ehreader.app.main.AdActivity;
 import tw.skyarrow.ehreader.app.main.MainFragmentWeb;
 import tw.skyarrow.ehreader.provider.SearchSuggestionProvider;
 import tw.skyarrow.ehreader.util.ActionBarHelper;
+import tw.skyarrow.ehreader.util.ExHentaiHepler;
 
 /**
  * Created by SkyArrow on 2014/1/28.
@@ -41,8 +40,10 @@ public class SearchActivity extends AdActivity {
 
         actionBar.setDisplayHomeAsUpEnabled(true);
 
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        boolean loggedIn = preferences.getBoolean(getString(R.string.pref_logged_in), false);
+//        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+//        boolean loggedIn = preferences.getBoolean(getString(R.string.pref_logged_in), false);
+
+        boolean isEx = ExHentaiHepler.getInstance(this).isEx();
 
         if (Intent.ACTION_SEARCH.equals(intent.getAction()) && savedInstanceState == null) {
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
@@ -52,7 +53,7 @@ public class SearchActivity extends AdActivity {
             SearchRecentSuggestions suggestions = new SearchRecentSuggestions(this,
                     SearchSuggestionProvider.AUTHORITY, SearchSuggestionProvider.MODE);
 
-            bundle.putString("base", ActionBarHelper.buildSearchUrl(query, loggedIn));
+            bundle.putString("base", ActionBarHelper.buildSearchUrl(query, isEx));
             fragment.setArguments(bundle);
             suggestions.saveRecentQuery(query, null);
             actionBar.setTitle(query);

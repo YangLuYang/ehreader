@@ -23,6 +23,10 @@ public class BaseApplication extends Application {
     private static Tracker tracker;
     private SharedPreferences preferences;
 
+    public static Tracker getTracker() {
+        return tracker;
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -36,6 +40,7 @@ public class BaseApplication extends Application {
 
     @Override
     public void onLowMemory() {
+        super.onLowMemory();
         ImageLoader.getInstance().clearMemoryCache();
     }
 
@@ -51,10 +56,6 @@ public class BaseApplication extends Application {
 
         ga.setDefaultTracker(tracker);
         ga.setDryRun(BuildConfig.DEBUG);
-    }
-
-    public static Tracker getTracker() {
-        return tracker;
     }
 
     private void initImageLoader() {

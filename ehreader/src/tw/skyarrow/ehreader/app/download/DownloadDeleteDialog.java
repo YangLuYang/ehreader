@@ -87,7 +87,8 @@ public class DownloadDeleteDialog extends DialogFragment {
             for (Photo photo : photos) {
                 File file = photo.getFile();
 
-                if (file.exists()) {
+
+                if (file != null && file.exists()) {
                     file.delete();
                 }
 

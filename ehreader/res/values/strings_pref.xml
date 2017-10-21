@@ -61,6 +61,11 @@
     <string name="pref_japanese_title_summary">Display the japanese title instead of the original one</string>
     <bool name="pref_japanese_title_default">false</bool>
 
+    <string name="pref_into_ex" translatable="false">into_exhentai</string>
+    <string name="pref_into_ex_title">Into exhentai</string>
+    <string name="pref_into_ex_summary">Into the exhentai.org</string>
+    <bool name="pref_into_ex_default">false</bool>
+
     // Slideshow
     <string name="pref_slideshow_title">Slideshow</string>
 
@@ -166,6 +171,11 @@
     <string name="pref_author" translatable="false">author</string>
     <string name="pref_author_title">Author</string>
     <string name="pref_author_summary" translatable="false">SkyArrow (@tommy351)</string>
+
+    <string name="pref_maintainer" translatable="false">maintainer</string>
+    <string name="pref_maintainer_title">Maintainer</string>
+    <string name="pref_maintainer_summary" translatable="false">Yang</string>
+
 
     <string name="pref_source_code" translatable="false">source_code</string>
     <string name="pref_source_code_title">Source code</string>

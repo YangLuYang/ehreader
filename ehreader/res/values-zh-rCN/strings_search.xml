@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="label_image_search">图片搜索</string>
+
+    // Menu
+    <string name="menu_search">搜索</string>
+    <string name="menu_image_search">图片搜索</string>
+
+    <string name="search_hint">搜索</string>
+
+    // Image search
+    <string name="image_search_hint">选择图片以搜索拥有该图片的图集。</string>
+    <string name="image_search_select">选择</string>
+    <string name="image_search_similar">搜索相似照片</string>
+    <string name="image_search_only_cover">仅搜索相似封面</string>
+    <string name="image_search_uploading">上传中&#8230;</string>
+
+    // Error
+    <string name="error_upload_image">图片上传失败。</string>
+</resources>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    // App info
+    <string name="app_name">E-Hentai 阅读器</string>
+
+    // Menu
+    <string name="menu_settings">设置</string>
+    <string name="menu_share">分享</string>
+    <string name="menu_open_drawer">打开侧栏</string>
+    <string name="menu_close_drawer">关闭侧栏</string>
+
+    // Categories
+    <string name="category_doujinshi">同人</string>
+    <string name="category_manga">漫画</string>
+    <string name="category_artistcg">艺术家 CG</string>
+    <string name="category_gamecg">游戏 CG</string>
+    <string name="category_western">欧美色情</string>
+    <string name="category_non_h">一般向</string>
+    <string name="category_imageset">图集</string>
+    <string name="category_cosplay">角色扮演</string>
+    <string name="category_asianporn">亚洲色情</string>
+    <string name="category_misc">其他</string>
+
+    // Error
+    <string name="error_no_network">网络连接失败。</string>
+
+    // Common buttons
+    <string name="retry">重试</string>
+    <string name="ok">确定</string>
+    <string name="cancel">取消</string>
+    <string name="delete">删除</string>
+
+</resources>

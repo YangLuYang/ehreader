@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    // Menu
+    <string name="menu_start_all">全部开始</string>
+    <string name="menu_pause_all">全部暂停</string>
+
+    <string name="download_open">打开</string>
+    <string name="download_start">开始</string>
+    <string name="download_pause">暂停</string>
+    <string name="download_redownload">重新下载</string>
+    <string name="download_delete">删除</string>
+
+    <string name="download_started">下载已开始</string>
+    <string name="download_in_progress">正在下载</string>
+    <string name="download_paused">下载已暂停</string>
+    <string name="download_failed">下载失败</string>
+    <string name="download_success">下载成功</string>
+    <string name="download_pending">正在等待下载</string>
+
+    // Dialog: Download confirm
+    <string name="download_confirm_title">下载</string>
+    <string name="download_confirm_msg">此图集共需要 %s，您确定要下载吗？</string>
+
+    // Dialog: Redownload
+    <string name="redownload_msg">此图集已经下载过了，您要重新下载吗？</string>
+
+    // Dialog: Delete gallery
+    <string name="delete_gallery_title">删除图集</string>
+    <string name="delete_gallery_msg">您要删除图集吗？此操作无法撤销。</string>
+    <string name="gallery_deleting">删除中&#8230;</string>
+</resources>

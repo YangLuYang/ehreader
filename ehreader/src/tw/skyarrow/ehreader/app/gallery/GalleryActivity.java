@@ -32,7 +32,7 @@ import com.google.analytics.tracking.android.MapBuilder;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.FailReason;
-import com.nostra13.universalimageloader.core.assist.SimpleImageLoadingListener;
+import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -65,43 +65,30 @@ import tw.skyarrow.ehreader.util.LoginHelper;
  * Created by SkyArrow on 2014/1/27.
  */
 public class GalleryActivity extends MainDrawerActivity {
+    public static final String TAG = "GalleryActivity";
+    public static final String EXTRA_GALLERY = "id";
     @InjectView(R.id.meta)
     TextView metaView;
-
     @InjectView(R.id.title)
     TextView titleView;
-
     @InjectView(R.id.rating)
     RatingBar ratingBar;
-
     @InjectView(R.id.subtitle)
     TextView subtitleView;
-
     @InjectView(R.id.tags)
     TextView tagView;
-
     @InjectView(R.id.uploader)
     TextView uploaderView;
-
     @InjectView(R.id.created)
     TextView createdView;
-
     @InjectView(R.id.cover_area)
     View coverArea;
-
     @InjectView(R.id.cover_fg)
     ImageView coverForeground;
-
     @InjectView(R.id.cover_bg)
     ImageView coverBackground;
-
     @InjectView(R.id.cover_loading)
     ProgressBar coverLoading;
-
-    public static final String TAG = "GalleryActivity";
-
-    public static final String EXTRA_GALLERY = "id";
-
     private GalleryDao galleryDao;
     private DownloadDao downloadDao;
 
@@ -256,50 +243,6 @@ public class GalleryActivity extends MainDrawerActivity {
         });
     }
 
-    private class BlurCoverRunnable implements Runnable {
-        private Bitmap bitmap;
-
-        public BlurCoverRunnable(Bitmap bitmap) {
-            this.bitmap = bitmap;
-        }
-
-        @Override
-        public void run() {
-            StackBlurManager blurManager = new StackBlurManager(bitmap);
-            runOnUiThread(new UpdateCoverRunnable(bitmap, blurManager.processNatively(10)));
-        }
-    };
-
-    private class UpdateCoverRunnable implements Runnable {
-        private Bitmap bitmap;
-        private Bitmap background;
-
-        public UpdateCoverRunnable(Bitmap bitmap, Bitmap background) {
-            this.bitmap = bitmap;
-            this.background = background;
-        }
-
-        @Override
-        public void run() {
-            // http://www.sherif.mobi/2013/01/how-to-get-widthheight-of-view.html
-            coverArea.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
-            int coverWidth = coverArea.getMeasuredWidth();
-            int coverHeight = coverArea.getMeasuredHeight();
-            int bmWidth = bitmap.getWidth();
-            int bmHeight = bitmap.getHeight();
-            float scale = getScale(bmWidth, bmHeight, coverWidth, coverHeight);
-
-            Animation fadeIn = AnimationUtils.loadAnimation(GalleryActivity.this, R.anim.cover_fade_in);
-            Bitmap bg = Bitmap.createScaledBitmap(background, (int) (bmWidth * scale), (int) (bmHeight * scale), true);
-
-            coverForeground.setImageBitmap(bitmap);
-            coverForeground.startAnimation(fadeIn);
-
-            coverBackground.setImageBitmap(bg);
-            coverBackground.startAnimation(fadeIn);
-        }
-    }
-
     private float getScale(int width, int height, int containerWidth, int containerHeight) {
         if (width * containerHeight > height * containerWidth) {
             return (float) height / containerHeight;
@@ -363,24 +306,6 @@ public class GalleryActivity extends MainDrawerActivity {
 
         uploaderView.setText(sp);
         uploaderView.setMovementMethod(LinkMovementMethod.getInstance());
-    }
-
-    private class TagSpan extends ClickableSpan {
-        private String tag;
-
-        public TagSpan(String tag) {
-            this.tag = tag;
-        }
-
-        @Override
-        public void onClick(View view) {
-            Intent intent = new Intent(GalleryActivity.this, SearchActivity.class);
-
-            intent.setAction(Intent.ACTION_SEARCH);
-            intent.putExtra(SearchManager.QUERY, tag);
-
-            startActivity(intent);
-        }
     }
 
     private void displayCreated(Date date) {
@@ -485,5 +410,67 @@ public class GalleryActivity extends MainDrawerActivity {
         dialog.show(getSupportFragmentManager(), GalleryPageDialog.TAG);
 
         return true;
+    }
+
+    private class BlurCoverRunnable implements Runnable {
+        private Bitmap bitmap;
+
+        public BlurCoverRunnable(Bitmap bitmap) {
+            this.bitmap = bitmap;
+        }
+
+        @Override
+        public void run() {
+            StackBlurManager blurManager = new StackBlurManager(bitmap);
+            runOnUiThread(new UpdateCoverRunnable(bitmap, blurManager.processNatively(10)));
+        }
+    }
+
+    private class UpdateCoverRunnable implements Runnable {
+        private Bitmap bitmap;
+        private Bitmap background;
+
+        public UpdateCoverRunnable(Bitmap bitmap, Bitmap background) {
+            this.bitmap = bitmap;
+            this.background = background;
+        }
+
+        @Override
+        public void run() {
+            // http://www.sherif.mobi/2013/01/how-to-get-widthheight-of-view.html
+            coverArea.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+            int coverWidth = coverArea.getMeasuredWidth();
+            int coverHeight = coverArea.getMeasuredHeight();
+            int bmWidth = bitmap.getWidth();
+            int bmHeight = bitmap.getHeight();
+            float scale = getScale(bmWidth, bmHeight, coverWidth, coverHeight);
+
+            Animation fadeIn = AnimationUtils.loadAnimation(GalleryActivity.this, R.anim.cover_fade_in);
+            Bitmap bg = Bitmap.createScaledBitmap(background, (int) (bmWidth * scale), (int) (bmHeight * scale), true);
+
+            coverForeground.setImageBitmap(bitmap);
+            coverForeground.startAnimation(fadeIn);
+
+            coverBackground.setImageBitmap(bg);
+            coverBackground.startAnimation(fadeIn);
+        }
+    }
+
+    private class TagSpan extends ClickableSpan {
+        private String tag;
+
+        public TagSpan(String tag) {
+            this.tag = tag;
+        }
+
+        @Override
+        public void onClick(View view) {
+            Intent intent = new Intent(GalleryActivity.this, SearchActivity.class);
+
+            intent.setAction(Intent.ACTION_SEARCH);
+            intent.putExtra(SearchManager.QUERY, tag);
+
+            startActivity(intent);
+        }
     }
 }

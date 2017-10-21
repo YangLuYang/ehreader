@@ -12,13 +12,13 @@ import android.view.MenuItem;
 import android.view.View;
 
 import de.greenrobot.event.EventBus;
-import tw.skyarrow.ehreader.Constant;
 import tw.skyarrow.ehreader.R;
 import tw.skyarrow.ehreader.app.pref.PrefActivity;
 import tw.skyarrow.ehreader.app.search.FilterDialog;
 import tw.skyarrow.ehreader.app.search.ImageSearchActivity;
 import tw.skyarrow.ehreader.event.ListUpdateEvent;
 import tw.skyarrow.ehreader.util.ActionBarHelper;
+import tw.skyarrow.ehreader.util.ExHentaiHepler;
 import tw.skyarrow.ehreader.util.LoginHelper;
 
 public class MainActivity extends AdActivity {
@@ -101,6 +101,7 @@ public class MainActivity extends AdActivity {
         Bundle args = new Bundle();
         String tag;
         boolean loggedIn = LoginHelper.getInstance(this).isLoggedIn();
+        boolean isEx = ExHentaiHepler.getInstance(this).isEx();
         String[] tabs = getResources().getStringArray(R.array.main_tabs);
         actionBarTitle = tabs[i];
 
@@ -131,7 +132,9 @@ public class MainActivity extends AdActivity {
             default:
                 fragment = new MainFragmentWeb();
                 tag = MainFragmentWeb.TAG;
-                args.putString(MainFragmentWeb.EXTRA_BASE, loggedIn ? Constant.BASE_URL_EX : Constant.BASE_URL);
+//                args.putString(MainFragmentWeb.EXTRA_BASE, loggedIn ? Constant.BASE_URL_EX : Constant.BASE_URL);
+                //修改
+//                args.putString(MainFragmentWeb.EXTRA_BASE, !isEx ? Constant.BASE_URL_EX : Constant.BASE_URL);
         }
 
         getActionBar().setTitle(actionBarTitle);

@@ -27,9 +27,9 @@ import com.google.analytics.tracking.android.MapBuilder;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.FailReason;
-import com.nostra13.universalimageloader.core.assist.ImageLoadingProgressListener;
 import com.nostra13.universalimageloader.core.assist.ImageScaleType;
-import com.nostra13.universalimageloader.core.assist.SimpleImageLoadingListener;
+import com.nostra13.universalimageloader.core.listener.ImageLoadingProgressListener;
+import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
 
 import java.io.File;
 
@@ -57,24 +57,18 @@ import uk.co.senab.photoview.PhotoViewAttacher;
  * Created by SkyArrow on 2014/1/31.
  */
 public class PhotoFragment extends Fragment {
-    @InjectView(R.id.page)
-    TextView pageText;
-
-    @InjectView(R.id.progress)
-    ProgressBar progressBar;
-
-    @InjectView(R.id.image)
-    ImageView imageView;
-
-    @InjectView(R.id.retry)
-    Button retryBtn;
-
     public static final String TAG = "PhotoFragment";
-
     public static final String EXTRA_GALLERY = "id";
     public static final String EXTRA_PAGE = "page";
     public static final String EXTRA_TITLE = "title";
-
+    @InjectView(R.id.page)
+    TextView pageText;
+    @InjectView(R.id.progress)
+    ProgressBar progressBar;
+    @InjectView(R.id.image)
+    ImageView imageView;
+    @InjectView(R.id.retry)
+    Button retryBtn;
     private PhotoDao photoDao;
 
     private ImageLoader imageLoader;
@@ -88,6 +82,66 @@ public class PhotoFragment extends Fragment {
     private Bitmap mBitmap;
 
     private boolean isServiceCalled = false;
+    private GestureDetector gestureDetector = new GestureDetector(getActivity(),
+            new GestureDetector.SimpleOnGestureListener() {
+                @Override
+                public boolean onSingleTapUp(MotionEvent e) {
+                    ((PhotoActivity) getActivity()).toggleUIVisibility();
+                    return true;
+                }
+            });
+    private ImageLoadingProgressListener imageProgressListener = new ImageLoadingProgressListener() {
+        @Override
+        public void onProgressUpdate(String s, View view, int current, int total) {
+            progressBar.setProgress((int) (current * 100f / total));
+        }
+    };
+    private PhotoViewAttacher.OnViewTapListener onPhotoTap = new PhotoViewAttacher.OnViewTapListener() {
+        @Override
+        public void onViewTap(View view, float v, float v2) {
+            ((PhotoActivity) getActivity()).toggleUIVisibility();
+        }
+    };
+    private SimpleImageLoadingListener imageLoadingListener = new SimpleImageLoadingListener() {
+        private long startLoadAt;
+
+        @Override
+        public void onLoadingStarted(String imageUri, View view) {
+            startLoadAt = System.currentTimeMillis();
+
+            progressBar.setIndeterminate(false);
+            progressBar.setProgress(0);
+            getActivity().invalidateOptionsMenu();
+        }
+
+        @Override
+        public void onLoadingComplete(String imageUri, View view, Bitmap bitmap) {
+            pageText.setVisibility(View.GONE);
+            progressBar.setVisibility(View.GONE);
+            imageView.setImageBitmap(bitmap);
+
+            PhotoViewAttacher attacher = new PhotoViewAttacher(imageView);
+            mBitmap = bitmap;
+            attacher.setOnViewTapListener(onPhotoTap);
+
+            getActivity().invalidateOptionsMenu();
+
+            BaseApplication.getTracker().send(MapBuilder.createTiming(
+                    "resources", System.currentTimeMillis() - startLoadAt, "load photo", null
+            ).build());
+        }
+
+        @Override
+        public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
+            if (isServiceCalled) {
+                showRetryBtn();
+            } else {
+                photo.setInvalid(true);
+                photoDao.update(photo);
+                callService();
+            }
+        }
+    };
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -129,15 +183,6 @@ public class PhotoFragment extends Fragment {
 
         return view;
     }
-
-    private GestureDetector gestureDetector = new GestureDetector(getActivity(),
-            new GestureDetector.SimpleOnGestureListener() {
-                @Override
-                public boolean onSingleTapUp(MotionEvent e) {
-                    ((PhotoActivity) getActivity()).toggleUIVisibility();
-                    return true;
-                }
-            });
 
     @Override
     public void onDestroyView() {
@@ -297,61 +342,6 @@ public class PhotoFragment extends Fragment {
         progressBar.setVisibility(View.GONE);
         retryBtn.setVisibility(View.VISIBLE);
     }
-
-    private SimpleImageLoadingListener imageLoadingListener = new SimpleImageLoadingListener() {
-        private long startLoadAt;
-
-        @Override
-        public void onLoadingStarted(String imageUri, View view) {
-            startLoadAt = System.currentTimeMillis();
-
-            progressBar.setIndeterminate(false);
-            progressBar.setProgress(0);
-            getActivity().invalidateOptionsMenu();
-        }
-
-        @Override
-        public void onLoadingComplete(String imageUri, View view, Bitmap bitmap) {
-            pageText.setVisibility(View.GONE);
-            progressBar.setVisibility(View.GONE);
-            imageView.setImageBitmap(bitmap);
-
-            PhotoViewAttacher attacher = new PhotoViewAttacher(imageView);
-            mBitmap = bitmap;
-            attacher.setOnViewTapListener(onPhotoTap);
-
-            getActivity().invalidateOptionsMenu();
-
-            BaseApplication.getTracker().send(MapBuilder.createTiming(
-                    "resources", System.currentTimeMillis() - startLoadAt, "load photo", null
-            ).build());
-        }
-
-        @Override
-        public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
-            if (isServiceCalled) {
-                showRetryBtn();
-            } else {
-                photo.setInvalid(true);
-                photoDao.update(photo);
-                callService();
-            }
-        }
-    };
-
-    private ImageLoadingProgressListener imageProgressListener = new ImageLoadingProgressListener() {
-        @Override
-        public void onProgressUpdate(String s, View view, int current, int total) {
-            progressBar.setProgress((int) (current * 100f / total));
-        }
-    };
-
-    private PhotoViewAttacher.OnViewTapListener onPhotoTap = new PhotoViewAttacher.OnViewTapListener() {
-        @Override
-        public void onViewTap(View view, float v, float v2) {
-            ((PhotoActivity) getActivity()).toggleUIVisibility();
-        }
-    };
 
     @OnClick(R.id.retry)
     void onRetryBtnClick() {

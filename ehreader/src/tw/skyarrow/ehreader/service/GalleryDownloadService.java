@@ -20,9 +20,9 @@ import android.os.Looper;
 import android.os.Message;
 import android.support.v4.app.NotificationCompat;
 
-import com.nostra13.universalimageloader.cache.disc.DiscCacheAware;
+import com.nostra13.universalimageloader.cache.disc.DiskCache;
 import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.assist.DiscCacheUtil;
+import com.nostra13.universalimageloader.utils.DiskCacheUtils;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -59,6 +59,9 @@ import tw.skyarrow.ehreader.event.GalleryDownloadEvent;
 import tw.skyarrow.ehreader.util.DatabaseHelper;
 import tw.skyarrow.ehreader.util.L;
 
+//import com.nostra13.universalimageloader.core.ImageLoader;
+//import com.nostra13.universalimageloader.core.assist.DiscCacheUtil;
+
 /**
  * Created by SkyArrow on 2014/2/4.
  */
@@ -92,25 +95,11 @@ public class GalleryDownloadService extends Service {
     private DownloadDao downloadDao;
     private EventBus bus;
     private DataLoader dataLoader;
-    private DiscCacheAware discCache;
+    private DiskCache discCache;
 
     private NotificationCompat.Builder notification;
     private NotificationManager nm;
     private int notificationCount = 0;
-
-    private final class ServiceHandler extends Handler {
-        public ServiceHandler(Looper looper) {
-            super(looper);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            L.i("Download %d is started", msg.what);
-            downloadTask = new DownloadTask(msg.what);
-            downloadTask.start();
-            stopSelf(msg.arg1);
-        }
-    }
 
     @Override
     public void onCreate() {
@@ -328,6 +317,20 @@ public class GalleryDownloadService extends Service {
         nm.notify(TAG, GLOBAL_NOTIFICATION_ID, notification.build());
     }
 
+    private final class ServiceHandler extends Handler {
+        public ServiceHandler(Looper looper) {
+            super(looper);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            L.i("Download %d is started", msg.what);
+            downloadTask = new DownloadTask(msg.what);
+            downloadTask.start();
+            stopSelf(msg.arg1);
+        }
+    }
+
     private final class DownloadTask {
         private long id;
         private Download download;
@@ -492,14 +495,18 @@ public class GalleryDownloadService extends Service {
                         skip = true;
                         break;
                     }
-
                     String src = photo.getSrc();
                     File dest = photo.getFile();
-                    File cache = DiscCacheUtil.findInCache(src, discCache);
+                    File cache = DiskCacheUtils.findInCache(src, discCache);
 
                     if (cache == null) {
                         HttpClient client = new DefaultHttpClient();
                         HttpGet httpGet = new HttpGet(src);
+                        httpGet.setHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36");
+                        httpGet.setHeader("Accept-Language", "zh-CN,zh;q=0.8");
+                        httpGet.setHeader("Accept-Charset", "utf-8;q=0.7,*;q=0.7");
+                        httpGet.setHeader("Connection", "keep-alive");
+                        httpGet.setHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8");
                         HttpResponse response = client.execute(httpGet);
                         int statusCode = response.getStatusLine().getStatusCode();
 

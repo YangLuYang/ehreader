@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.CheckBoxPreference;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
@@ -23,6 +24,7 @@ import tw.skyarrow.ehreader.event.LoginEvent;
 import tw.skyarrow.ehreader.event.UpdateCheckEvent;
 import tw.skyarrow.ehreader.service.UpdateCheckService;
 import tw.skyarrow.ehreader.util.DownloadHelper;
+import tw.skyarrow.ehreader.util.ExHentaiHepler;
 import tw.skyarrow.ehreader.util.UpdateHelper;
 import tw.skyarrow.ehreader.widget.ListPreferenceWithSummary;
 
@@ -31,17 +33,94 @@ import tw.skyarrow.ehreader.widget.ListPreferenceWithSummary;
  */
 public class PrefFragment extends PreferenceFragment {
     public static final String TAG = "PrefFragment";
-
+    private static final int CLICK_THRESHOLD = 5;
+    private static final long RESET_DELAY = 500;
     private SharedPreferences preferences;
     private PreferenceCategory accountCategory;
     private Preference loginPref;
     private Preference logoutPref;
     private Preference checkUpdatePref;
-
-    private static final int CLICK_THRESHOLD = 5;
-    private static final long RESET_DELAY = 500;
-
+    private ExHentaiHepler exHentaiHepler;
     private int clickCount = 0;
+    private Preference.OnPreferenceChangeListener onHideFileChange = new Preference.OnPreferenceChangeListener() {
+        @Override
+        public boolean onPreferenceChange(Preference preference, Object value) {
+            try {
+                DownloadHelper.setFolderVisibility(!(Boolean) value);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return true;
+        }
+    };
+    private Preference.OnPreferenceChangeListener onExChange = new Preference.OnPreferenceChangeListener() {
+
+        @Override
+        public boolean onPreferenceChange(Preference preference, Object newValue) {
+            exHentaiHepler.setIsEx((Boolean) newValue);
+            return true;
+        }
+    };
+    private Handler versionClickHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            versionClickHandler.removeMessages(0);
+            clickCount = 0;
+        }
+    };
+    private Preference.OnPreferenceClickListener onVersionClick = new Preference.OnPreferenceClickListener() {
+        @Override
+        public boolean onPreferenceClick(Preference preference) {
+            versionClickHandler.removeMessages(0);
+
+            if (clickCount < CLICK_THRESHOLD) {
+                clickCount++;
+                versionClickHandler.sendEmptyMessageDelayed(0, RESET_DELAY);
+            } else {
+                Intent intent = new Intent(getActivity(), AboutActivity.class);
+                clickCount = 0;
+
+                versionClickHandler.removeMessages(0);
+                startActivity(intent);
+            }
+
+            return true;
+        }
+    };
+    private Preference.OnPreferenceClickListener onAuthorClick = new Preference.OnPreferenceClickListener() {
+        @Override
+        public boolean onPreferenceClick(Preference preference) {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+
+            intent.setData(Uri.parse(Constant.AUTHOR_PAGE));
+            startActivity(intent);
+
+            return true;
+        }
+    };
+    private Preference.OnPreferenceClickListener onSourceCodeClick = new Preference.OnPreferenceClickListener() {
+        @Override
+        public boolean onPreferenceClick(Preference preference) {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+
+            intent.setData(Uri.parse(Constant.HOMEPAGE));
+            startActivity(intent);
+
+            return true;
+        }
+    };
+    private Preference.OnPreferenceClickListener onMaintainerClick = new Preference.OnPreferenceClickListener() {
+        @Override
+        public boolean onPreferenceClick(Preference preference) {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+
+            intent.setData(Uri.parse(Constant.MAINTAINER_PAGE));
+            startActivity(intent);
+
+            return true;
+        }
+    };
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -52,6 +131,8 @@ public class PrefFragment extends PreferenceFragment {
         preferences = getPreferenceManager().getSharedPreferences();
 
         accountCategory = (PreferenceCategory) findPreferenceByResource(R.string.pref_account);
+
+        exHentaiHepler = ExHentaiHepler.getInstance(getActivity());
 
         loginPref = findPreferenceByResource(R.string.pref_login);
         loginPref.setOnPreferenceClickListener(
@@ -68,6 +149,15 @@ public class PrefFragment extends PreferenceFragment {
         } else {
             hideLogoutPref();
         }
+
+
+        Preference intoExPref = findPreferenceByResource(R.string.pref_into_ex);
+        intoExPref.setOnPreferenceChangeListener(onExChange);
+
+        boolean isEx = preferences.getBoolean(getString(R.string.pref_into_ex), false);
+
+        ((CheckBoxPreference) intoExPref).setChecked(isEx);
+
 
         Preference hideFilesPref = findPreferenceByResource(R.string.pref_hide_files);
         hideFilesPref.setOnPreferenceChangeListener(onHideFileChange);
@@ -116,6 +206,9 @@ public class PrefFragment extends PreferenceFragment {
 
         Preference sourceCodePref = findPreferenceByResource(R.string.pref_source_code);
         sourceCodePref.setOnPreferenceClickListener(onSourceCodeClick);
+
+        Preference maintainerPref = findPreferenceByResource(R.string.pref_maintainer);
+        maintainerPref.setOnPreferenceClickListener(onMaintainerClick);
     }
 
     @Override
@@ -165,70 +258,9 @@ public class PrefFragment extends PreferenceFragment {
         accountCategory.addPreference(loginPref);
     }
 
-    private Preference.OnPreferenceChangeListener onHideFileChange = new Preference.OnPreferenceChangeListener() {
-        @Override
-        public boolean onPreferenceChange(Preference preference, Object value) {
-            try {
-                DownloadHelper.setFolderVisibility(!(Boolean) value);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            return true;
-        }
-    };
-
-    private Preference.OnPreferenceClickListener onVersionClick = new Preference.OnPreferenceClickListener() {
-        @Override
-        public boolean onPreferenceClick(Preference preference) {
-            versionClickHandler.removeMessages(0);
-
-            if (clickCount < CLICK_THRESHOLD) {
-                clickCount++;
-                versionClickHandler.sendEmptyMessageDelayed(0, RESET_DELAY);
-            } else {
-                Intent intent = new Intent(getActivity(), AboutActivity.class);
-                clickCount = 0;
-
-                versionClickHandler.removeMessages(0);
-                startActivity(intent);
-            }
-
-            return true;
-        }
-    };
-
-    private Handler versionClickHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            versionClickHandler.removeMessages(0);
-            clickCount = 0;
-        }
-    };
-
-    private Preference.OnPreferenceClickListener onAuthorClick = new Preference.OnPreferenceClickListener() {
-        @Override
-        public boolean onPreferenceClick(Preference preference) {
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-
-            intent.setData(Uri.parse(Constant.AUTHOR_PAGE));
-            startActivity(intent);
-
-            return true;
-        }
-    };
-
-    private Preference.OnPreferenceClickListener onSourceCodeClick = new Preference.OnPreferenceClickListener() {
-        @Override
-        public boolean onPreferenceClick(Preference preference) {
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-
-            intent.setData(Uri.parse(Constant.HOMEPAGE));
-            startActivity(intent);
-
-            return true;
-        }
-    };
+    private Preference findPreferenceByResource(int id) {
+        return findPreference(getString(id));
+    }
 
     private class OpenDialogPreference implements Preference.OnPreferenceClickListener {
         private DialogFragment dialog;
@@ -244,9 +276,5 @@ public class PrefFragment extends PreferenceFragment {
             dialog.show(((FragmentActivity) getActivity()).getSupportFragmentManager(), tag);
             return true;
         }
-    };
-
-    private Preference findPreferenceByResource(int id) {
-        return findPreference(getString(id));
     }
 }

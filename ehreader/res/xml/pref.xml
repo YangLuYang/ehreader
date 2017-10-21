@@ -5,8 +5,8 @@
         android:title="@string/pref_account_title">
         <PreferenceScreen
             android:key="@string/pref_login"
-            android:title="@string/pref_login_title"
-            android:summary="@string/pref_login_summary"/>
+            android:summary="@string/pref_login_summary"
+            android:title="@string/pref_login_title" />
         <PreferenceScreen
             android:key="@string/pref_logout"
             android:title="@string/pref_logout_title"/>
@@ -15,34 +15,40 @@
     <PreferenceCategory
         android:title="@string/pref_view_title">
         <tw.skyarrow.ehreader.widget.ListPreferenceWithSummary
-            android:key="@string/pref_launch_page"
-            android:title="@string/pref_launch_page_title"
-            android:entries="@array/main_tabs"
             android:defaultValue="@string/pref_launch_page_default"
             android:dialogTitle="@string/pref_launch_page_title"
-            android:entryValues="@array/pref_launch_page_values"/>
+            android:entries="@array/main_tabs"
+            android:entryValues="@array/pref_launch_page_values"
+            android:key="@string/pref_launch_page"
+            android:title="@string/pref_launch_page_title" />
         <tw.skyarrow.ehreader.widget.ListPreferenceWithSummary
-            android:key="@string/pref_screen_orientation"
-            android:title="@string/pref_screen_orientation_title"
-            android:entries="@array/pref_screen_orientation_entries"
             android:defaultValue="@string/pref_screen_orientation_default"
             android:dialogTitle="@string/pref_screen_orientation_title"
-            android:entryValues="@array/pref_screen_orientation_values"/>
+            android:entries="@array/pref_screen_orientation_entries"
+            android:entryValues="@array/pref_screen_orientation_values"
+            android:key="@string/pref_screen_orientation"
+            android:title="@string/pref_screen_orientation_title" />
         <CheckBoxPreference
+            android:defaultValue="@bool/pref_volume_key_navigation_default"
             android:key="@string/pref_volume_key_navigation"
-            android:title="@string/pref_volume_key_navigation_title"
             android:summary="@string/pref_volume_key_navigation_summary"
-            android:defaultValue="@bool/pref_volume_key_navigation_default"/>
+            android:title="@string/pref_volume_key_navigation_title" />
         <CheckBoxPreference
+            android:defaultValue="@bool/pref_keep_screen_on_default"
             android:key="@string/pref_keep_screen_on"
-            android:title="@string/pref_keep_screen_on_title"
             android:summary="@string/pref_keep_screen_on_summary"
-            android:defaultValue="@bool/pref_keep_screen_on_default"/>
+            android:title="@string/pref_keep_screen_on_title" />
         <CheckBoxPreference
+            android:defaultValue="@bool/pref_japanese_title_default"
             android:key="@string/pref_japanese_title"
-            android:title="@string/pref_japanese_title_title"
             android:summary="@string/pref_japanese_title_summary"
-            android:defaultValue="@bool/pref_japanese_title_default"/>
+            android:title="@string/pref_japanese_title_title" />
+        <CheckBoxPreference
+            android:defaultValue="@bool/pref_into_ex_default"
+            android:key="@string/pref_into_ex"
+            android:summary="@string/pref_into_ex_summary"
+            android:title="@string/pref_into_ex_title" />
+
     </PreferenceCategory>
     <!-- Slideshow -->
     <!--
@@ -67,47 +73,47 @@
     <PreferenceCategory
         android:title="@string/pref_download_title">
         <CheckBoxPreference
+            android:defaultValue="@bool/pref_auto_download_default"
             android:key="@string/pref_auto_download"
-            android:title="@string/pref_auto_download_title"
             android:summary="@string/pref_auto_download_summary"
-            android:defaultValue="@bool/pref_auto_download_default"/>
+            android:title="@string/pref_auto_download_title" />
         <CheckBoxPreference
+            android:defaultValue="@bool/pref_download_over_wifi_default"
             android:key="@string/pref_download_over_wifi"
-            android:title="@string/pref_download_over_wifi_title"
             android:summary="@string/pref_download_over_wifi_summary"
-            android:defaultValue="@bool/pref_download_over_wifi_default"/>
+            android:title="@string/pref_download_over_wifi_title" />
         <CheckBoxPreference
+            android:defaultValue="@bool/pref_hide_files_default"
             android:key="@string/pref_hide_files"
-            android:title="@string/pref_hide_files_title"
             android:summary="@string/pref_hide_files_summary"
-            android:defaultValue="@bool/pref_hide_files_default"/>
+            android:title="@string/pref_hide_files_title" />
     </PreferenceCategory>
     <!-- Update -->
     <PreferenceCategory
         android:title="@string/pref_update_title">
         <PreferenceScreen
-            android:title="@string/pref_check_update_title"
-            android:key="@string/pref_check_update"/>
+            android:key="@string/pref_check_update"
+            android:title="@string/pref_check_update_title" />
         <tw.skyarrow.ehreader.widget.ListPreferenceWithSummary
-            android:title="@string/pref_auto_check_update_title"
-            android:key="@string/pref_auto_check_update"
             android:defaultValue="@string/pref_auto_check_update_default"
+            android:dialogTitle="@string/pref_auto_check_update_title"
             android:entries="@array/pref_auto_check_update_entries"
             android:entryValues="@array/pref_auto_check_update_values"
-            android:dialogTitle="@string/pref_auto_check_update_title"/>
+            android:key="@string/pref_auto_check_update"
+            android:title="@string/pref_auto_check_update_title" />
     </PreferenceCategory>
     <!-- Advanced -->
     <PreferenceCategory
         android:title="@string/pref_advanced_title">
         <PreferenceScreen
-            android:title="@string/pref_clear_cache_title"
-            android:key="@string/pref_clear_cache"/>
+            android:key="@string/pref_clear_cache"
+            android:title="@string/pref_clear_cache_title" />
         <PreferenceScreen
-            android:title="@string/pref_clear_history_title"
-            android:key="@string/pref_clear_history"/>
+            android:key="@string/pref_clear_history"
+            android:title="@string/pref_clear_history_title" />
         <PreferenceScreen
-            android:title="@string/pref_clear_search_title"
-            android:key="@string/pref_clear_search"/>
+            android:key="@string/pref_clear_search"
+            android:title="@string/pref_clear_search_title" />
     </PreferenceCategory>
     <!-- About -->
     <PreferenceCategory
@@ -117,11 +123,15 @@
             android:title="@string/pref_version_title"/>
         <PreferenceScreen
             android:key="@string/pref_author"
-            android:title="@string/pref_author_title"
-            android:summary="@string/pref_author_summary"/>
+            android:summary="@string/pref_author_summary"
+            android:title="@string/pref_author_title" />
+        <PreferenceScreen
+            android:key="@string/pref_maintainer"
+            android:summary="@string/pref_maintainer_summary"
+            android:title="@string/pref_maintainer_title" />
         <PreferenceScreen
             android:key="@string/pref_source_code"
-            android:title="@string/pref_source_code_title"
-            android:summary="@string/pref_source_code_summary"/>
+            android:summary="@string/pref_source_code_summary"
+            android:title="@string/pref_source_code_title" />
     </PreferenceCategory>
 </PreferenceScreen>

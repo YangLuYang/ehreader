@@ -35,8 +35,14 @@ public abstract class PhotoBase {
     }
 
     public File getFile() {
-        File galleryFolder = new File(DownloadHelper.getFolder(), Long.toString(getGalleryId()));
+        //防止没有下载完成的出现空指针异常
+        try {
+            File galleryFolder = new File(DownloadHelper.getFolder(), Long.toString(getGalleryId()));
 
-        return new File(galleryFolder, getFilename());
+            return new File(galleryFolder, getFilename());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
